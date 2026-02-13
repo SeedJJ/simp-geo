@@ -242,23 +242,30 @@ def host():
 @app.route("/set_answer/<round_id>", methods=["GET", "POST"])
 def set_answer(round_id):
     rd = get_round(round_id)
+    round_num = STATE.rounds.index(rd) + 1
 
     if request.method == "POST":
         x = int(request.form["x"])
         y = int(request.form["y"])
         rd.answer_xy = (x, y)
+
+        if request.headers.get("X-Requested-With") == "fetch":
+            return jsonify({"ok": True, "answer": {"x": x, "y": y}})
+
         return redirect(url_for("host"))
 
-    return render_template("set_answer.html", map_fn=rd.map_filename)
+    return render_template("set_answer.html", map_fn=rd.map_filename, round_num=round_num)
 
 
 @app.route("/play/<round_id>")
 def play_round(round_id):
     rd = get_round(round_id)
+    round_num = STATE.rounds.index(rd) + 1
+
     if rd.answer_xy is None:
         return redirect(url_for("set_answer", round_id=round_id))
 
-    return render_template("play_round.html", map_fn=rd.map_filename, round_id=round_id)
+    return render_template("play_round.html", map_fn=rd.map_filename, round_id=round_id, round_num=round_num)
 
 
 @app.route("/leaderboard")
@@ -269,7 +276,7 @@ def leaderboard():
     for i, rd in enumerate(STATE.rounds):
         if rd.answer_xy is None:
             continue
-        row = {"index": i, "map": rd.map_filename, "answer": rd.answer_xy, "guesses": rd.guesses, "scores": {}}
+        row = {"index": i + 1, "map": rd.map_filename, "answer": rd.answer_xy, "guesses": rd.guesses, "scores": {}}
         for p in STATE.players:
             if p in rd.guesses:
                 d = pixel_distance(rd.guesses[p], rd.answer_xy)
@@ -296,13 +303,12 @@ def leaderboard():
 @app.route("/r/<round_id>")
 def public_round(round_id):
     rd = get_round(round_id)
+    round_num = STATE.rounds.index(rd) + 1
 
-    # Block players until the host sets the answer
     if rd.answer_xy is None:
         return "This round is not ready yet (host hasn't set the answer).", 403
 
-    # Render the player-only page directly (no redirect to set_answer)
-    return render_template("play_round.html", map_fn=rd.map_filename, round_id=round_id)
+    return render_template("play_round.html", map_fn=rd.map_filename, round_id=round_id, round_num=round_num)
 
 if __name__ == "__main__":
     print(f"Running on http://{APP_HOST}:{APP_PORT}")
