@@ -8,7 +8,7 @@ Update:
 ## Run (Windows PowerShell)
 
 ```powershell
-py -m pip install flask pillow
+pip install -r requirement.txt
 py app.py
 ```
 
