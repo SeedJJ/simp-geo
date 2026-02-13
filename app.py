@@ -162,6 +162,9 @@ def api_guess():
 @app.route("/api/round_state/<round_id>", methods=["GET"])
 def api_round_state(round_id):
     rd = get_round(round_id)
+    if rd.answer_xy is None:
+        return jsonify({"ok": False, "error": "Round not ready."}), 403
+
     guesses = {p: {"x": xy[0], "y": xy[1]} for p, xy in rd.guesses.items()}
     return jsonify({"ok": True, "players": STATE.players, "guesses": guesses})
 
@@ -290,6 +293,16 @@ def leaderboard():
         back_round_id=back_round_id,
     )
 
+@app.route("/r/<round_id>")
+def public_round(round_id):
+    rd = get_round(round_id)
+
+    # Block players until the host sets the answer
+    if rd.answer_xy is None:
+        return "This round is not ready yet (host hasn't set the answer).", 403
+
+    # Render the player-only page directly (no redirect to set_answer)
+    return render_template("play_round.html", map_fn=rd.map_filename, round_id=round_id)
 
 if __name__ == "__main__":
     print(f"Running on http://{APP_HOST}:{APP_PORT}")
