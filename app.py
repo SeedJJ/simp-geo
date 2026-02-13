@@ -245,6 +245,8 @@ def set_answer(round_id):
     round_num = STATE.rounds.index(rd) + 1
 
     if request.method == "POST":
+        if request.form["x"] == "" or request.form["y"] == "":
+            return render_template("set_answer.html", map_fn=rd.map_filename, error="You should select a point on the map before saving.")
         x = int(request.form["x"])
         y = int(request.form["y"])
         rd.answer_xy = (x, y)
@@ -276,7 +278,17 @@ def leaderboard():
     for i, rd in enumerate(STATE.rounds):
         if rd.answer_xy is None:
             continue
-        row = {"index": i + 1, "map": rd.map_filename, "answer": rd.answer_xy, "guesses": rd.guesses, "scores": {}}
+
+        guesses_obj = {p: {"x": xy[0], "y": xy[1]} for p, xy in rd.guesses.items()}
+
+        row = {
+            "index": i + 1,  # round number starting at 1
+            "map": rd.map_filename,
+            "answer": rd.answer_xy,
+            "guesses": guesses_obj,
+            "scores": {}
+        }
+
         for p in STATE.players:
             if p in rd.guesses:
                 d = pixel_distance(rd.guesses[p], rd.answer_xy)
@@ -285,6 +297,7 @@ def leaderboard():
                 row["scores"][p] = (s, int(round(d)))
             else:
                 row["scores"][p] = None
+
         round_rows.append(row)
 
     ranked = sorted(totals.items(), key=lambda kv: kv[1], reverse=True)

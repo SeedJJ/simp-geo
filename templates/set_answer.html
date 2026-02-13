@@ -32,7 +32,10 @@
 
     <div class="card">
         <div class="tag">Map</div>
-        <p class="muted" style="margin:10px 0 10px 0;">Selected: <span class="xy" id="xy">(none)</span></p>
+        <p class="muted" style="margin:10px 0 10px 0;">
+            Selected: <span class="xy" id="xy">(none)</span>
+        </p>
+
         <div id="toast" style="
           position: fixed;
           right: 18px;
@@ -47,11 +50,16 @@
           font-weight: 900;
           box-shadow: 0 10px 30px rgba(16,24,40,0.18);
         "></div>
+
         <div id="mapWrap" style="position:relative; display:block; width:100%; max-width:1200px;">
             <img id="map" src="{{url_for('uploads', filename=map_fn)}}" />
-            <svg id="pinSvg" style="position:absolute; inset:0; width:100%; height:100%; pointer-events:none;"></svg>
+            <svg id="pinSvg"
+                 style="position:absolute; inset:0; width:100%; height:100%; pointer-events:none;">
+            </svg>
         </div>
-        <form id="answerForm" method="post" style="margin-top:12px; display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+
+        <form id="answerForm" method="post"
+              style="margin-top:12px; display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
             <input type="hidden" name="x" id="x" />
             <input type="hidden" name="y" id="y" />
             <button type="submit">Save answer</button>
