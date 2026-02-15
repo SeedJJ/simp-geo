@@ -1,0 +1,36 @@
+body {
+  padding: 24px 18px;
+}
+
+.wrap {
+  max-width: 1150px;
+}
+
+h1 {
+  margin: 0;
+  font-size: 26px;
+  letter-spacing: -0.02em;
+}
+
+.card {
+  margin: 12px 0;
+}
+
+.pinwrap {
+  width: 100%;
+  max-width: 1150px;
+}
+
+.pinmap {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.row {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: space-between;
+}
