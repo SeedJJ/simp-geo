@@ -16,6 +16,8 @@ class Round:
     id: str
     map_filename: str
     map_size: Tuple[int, int]  # (w,h) in pixels
+    # Optional "scene" image shown to players for this round (does not affect scoring).
+    scene_filename: Optional[str] = None
     answer_xy: Optional[Tuple[int, int]] = None
     guesses: Dict[str, Tuple[int, int]] = field(default_factory=dict)
 
@@ -48,15 +50,16 @@ def get_image_size(path: str) -> Tuple[int, int]:
     return size
 
 
-def list_map_library() -> List[Dict[str, object]]:
+def list_image_library(subfolder) -> List[Dict[str, object]]:
     items: List[Dict[str, object]] = []
-    if not os.path.isdir(UPLOAD_DIR):
+    image_library_path = os.path.join(UPLOAD_DIR, subfolder)
+    if not os.path.isdir(image_library_path):
         return items
 
-    for name in sorted(os.listdir(UPLOAD_DIR)):
+    for name in sorted(os.listdir(image_library_path)):
         if not ext_ok(name):
             continue
-        path = os.path.join(UPLOAD_DIR, name)
+        path = os.path.join(image_library_path, name)
         if not os.path.isfile(path):
             continue
         try:
@@ -65,6 +68,14 @@ def list_map_library() -> List[Dict[str, object]]:
             continue
         items.append({"filename": name, "size": size})
     return items
+
+
+def list_map_library() -> List[Dict[str, object]]:
+    return list_image_library("maps")
+
+
+def list_scene_library():
+    return list_image_library("scenes")
 
 
 def normalize_player_name(name: str) -> str:
@@ -76,7 +87,7 @@ def player_exists(name: str) -> bool:
     return any(normalize_player_name(p) == n for p in STATE.players)
 
 
-def save_upload(file_storage) -> str:
+def save_upload(file_storage, sub_folder) -> str:
     if not file_storage or file_storage.filename == "":
         raise ValueError("No file selected.")
     if not ext_ok(file_storage.filename):
@@ -99,13 +110,21 @@ def save_upload(file_storage) -> str:
 
     candidate = f"{cleaned_stem}{ext}"
     counter = 1
-    while os.path.exists(os.path.join(UPLOAD_DIR, candidate)):
+    while os.path.exists(os.path.join(UPLOAD_DIR, sub_folder, candidate)):
         candidate = f"{cleaned_stem}({counter}){ext}"
         counter += 1
 
-    path = os.path.join(UPLOAD_DIR, candidate)
+    path = os.path.join(UPLOAD_DIR, sub_folder, candidate)
     file_storage.save(path)
     return candidate
+
+
+def save_scene_upload(file_storage) -> str:
+    return save_upload(file_storage, "scenes")
+
+
+def save_map_upload(file_storage) -> str:
+    return save_upload(file_storage, "maps")
 
 
 def pixel_distance(a: Tuple[int, int], b: Tuple[int, int]) -> float:
@@ -132,3 +151,9 @@ def current_round() -> Optional[Round]:
         return None
     idx = min(max(STATE.current_round_index, 0), len(STATE.rounds) - 1)
     return STATE.rounds[idx]
+
+
+def setup_upload_dirs():
+    for sub in ["maps", "scenes"]:
+        path = os.path.join(UPLOAD_DIR, sub)
+        os.makedirs(path, exist_ok=True)
